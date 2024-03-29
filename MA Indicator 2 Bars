@@ -1,0 +1,44 @@
+//@version=5
+indicator("Moving Average 2 Bars Indicator", overlay=true)
+
+// Inputs for start and end dates
+startYear = input.int(2024, "Start Year")
+startMonth = input.int(1, "Start Month", minval=1, maxval=12)
+startDay = input.int(1, "Start Day", minval=1, maxval=31)
+endYear = input.int(2024, "End Year")
+endMonth = input.int(12, "End Month", minval=1, maxval=12)
+endDay = input.int(31, "End Day", minval=1, maxval=31)
+
+// Convert start and end dates to timestamp
+startDate = timestamp(startYear, startMonth, startDay, 00, 00)
+endDate = timestamp(endYear, endMonth, endDay, 23, 59)
+
+// Ensure current date is within the start and end dates
+dateIsWithinRange = (time >= startDate and time <= endDate)
+
+// Calculate the 9-period moving average of the closing prices
+maPeriod = 9
+movingAverage = ta.sma(close, maPeriod)
+plot(movingAverage, color=color.blue, title="9-Period MA")
+
+// Detect two consecutive rising bars closing above the MA
+risingBarsAboveMA = dateIsWithinRange and close > movingAverage and close[1] > movingAverage and close > close[1] and close[1] > close[2]
+
+// Plot Buy Signal: Once the condition for two rising bars closing above the moving average is met
+plotshape(series=risingBarsAboveMA, title="Buy Signal", location=location.belowbar, color=color.green, style=shape.labelup, text="BUY")
+
+// Profit Target and Stop Loss Indicators based on entry price
+var float entryPrice = na // Variable to store the entry price
+profitTarget = 1.05 // 5% profit target
+stopLoss = 0.98 // 2% stop loss
+
+// Logic to display Profit Target and Stop Loss levels (visualization only, not functional as in strategy)
+if (risingBarsAboveMA)
+    entryPrice := close
+if (not na(entryPrice))
+    line.new(x1=bar_index, y1=entryPrice * profitTarget, x2=bar_index + 1, y2=entryPrice * profitTarget, width=1, color=color.green, style=line.style_dashed)
+    line.new(x1=bar_index, y1=entryPrice * stopLoss, x2=bar_index + 1, y2=entryPrice * stopLoss, width=1, color=color.red, style=line.style_dashed)
+
+// Reset entry price for visualization purposes
+if (risingBarsAboveMA or not na(entryPrice) and (close >= entryPrice * profitTarget or close <= entryPrice * stopLoss))
+    entryPrice := na
