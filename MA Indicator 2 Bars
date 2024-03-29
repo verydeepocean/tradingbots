@@ -1,10 +1,12 @@
 //@version=5
-indicator("Moving Average 2 Bars Indicator", overlay=true)
+strategy("Mooving Average 2 Bars", overlay=true, default_qty_type=strategy.cash, default_qty_value=1000, currency=currency.USD, initial_capital=1000, commission_type=strategy.commission.percent, commission_value=0.1)
 
-// Inputs for start and end dates
-startYear = input.int(2023, "Start Year")
-startMonth = input.int(1, "Start Month", minval=1, maxval=12)
+// Inputs for start date
+startYear = input.int(2024, "Start Year")
+startMonth = input.int(3, "Start Month", minval=1, maxval=12)
 startDay = input.int(1, "Start Day", minval=1, maxval=31)
+
+// Inputs for end date
 endYear = input.int(2024, "End Year")
 endMonth = input.int(12, "End Month", minval=1, maxval=12)
 endDay = input.int(31, "End Day", minval=1, maxval=31)
@@ -24,21 +26,29 @@ plot(movingAverage, color=color.blue, title="9-Period MA")
 // Detect two consecutive rising bars closing above the MA
 risingBarsAboveMA = dateIsWithinRange and close > movingAverage and close[1] > movingAverage and close > close[1] and close[1] > close[2]
 
-// Plot Buy Signal: Once the condition for two rising bars closing above the moving average is met
-plotshape(series=risingBarsAboveMA, title="Buy Signal", location=location.belowbar, color=color.green, style=shape.labelup, text="BUY")
-
-// Profit Target and Stop Loss Indicators based on entry price
-var float entryPrice = na // Variable to store the entry price
-profitTarget = 1.05 // 5% profit target
-stopLoss = 0.98 // 2% stop loss
-
-// Logic to display Profit Target and Stop Loss levels (visualization only, not functional as in strategy)
+// Execute Buy Order: Once the condition for two rising bars closing above the moving average is met
 if (risingBarsAboveMA)
-    entryPrice := close
-if (not na(entryPrice))
-    line.new(x1=bar_index, y1=entryPrice * profitTarget, x2=bar_index + 1, y2=entryPrice * profitTarget, width=1, color=color.green, style=line.style_dashed)
-    line.new(x1=bar_index, y1=entryPrice * stopLoss, x2=bar_index + 1, y2=entryPrice * stopLoss, width=1, color=color.red, style=line.style_dashed)
+    strategy.entry("Buy", strategy.long)
 
-// Reset entry price for visualization purposes
-if (risingBarsAboveMA or not na(entryPrice) and (close >= entryPrice * profitTarget or close <= entryPrice * stopLoss))
-    entryPrice := na
+// Calculate Stop Loss and Profit Target based on entry price
+var float entryPrice = na // Variable to store the entry price
+profitTarget = 1.05 // 2% profit target
+stopLoss = 0.98 // 1% stop loss
+
+// Update entry price on position entry
+if (strategy.position_size > 0 and na(entryPrice))
+    entryPrice := strategy.opentrades.entry_price(0)
+
+// Exit conditions
+// Profit target
+if (not na(entryPrice) and close >= entryPrice * profitTarget)
+    strategy.close("Buy", comment="Profit Target Reached")
+    entryPrice := na // Reset entry price
+
+// Stop loss
+if (not na(entryPrice) and close <= entryPrice * stopLoss)
+    strategy.close("Buy", comment="Stop Loss Hit")
+    entryPrice := na // Reset entry price
+
+// This strategy enters a long position when two consecutive bars close above the 9-period moving average,
+// and exits the position either when a 2% profit is achieved or a 1% loss is incurred, within the specified date range.
