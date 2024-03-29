@@ -1,30 +1,25 @@
 //@version=5
-strategy("Mooving Average 2 Bars", overlay=true, default_qty_type=strategy.cash, default_qty_value=1000, currency=currency.USD, initial_capital=1000, commission_type=strategy.commission.percent, commission_value=0.1)
+strategy("MA Crossover with Enhanced Trend Filter", overlay=true, default_qty_type=strategy.cash, default_qty_value=100, currency=currency.USD, commission_type=strategy.commission.percent, commission_value=0.1)
 
-// Inputs for start date
-startYear = input.int(2024, "Start Year")
-startMonth = input.int(3, "Start Month", minval=1, maxval=12)
+// Start date inputs
+startYear = input.int(2020, "Start Year")
+startMonth = input.int(1, "Start Month", minval=1, maxval=12)
 startDay = input.int(1, "Start Day", minval=1, maxval=31)
 
-// Inputs for end date
-endYear = input.int(2024, "End Year")
-endMonth = input.int(12, "End Month", minval=1, maxval=12)
-endDay = input.int(31, "End Day", minval=1, maxval=31)
-
-// Convert start and end dates to timestamp
+// Convert start date to timestamp
 startDate = timestamp(startYear, startMonth, startDay, 00, 00)
-endDate = timestamp(endYear, endMonth, endDay, 23, 59)
 
-// Ensure current date is within the start and end dates
-dateIsWithinRange = (time >= startDate and time <= endDate)
+// Short-term and long-term moving averages
+maPeriodShort = 9
+maPeriodLong = 50
+movingAverageShort = ta.sma(close, maPeriodShort)
+movingAverageLong = ta.sma(close, maPeriodLong)
+plot(movingAverageShort, color=color.blue, title="9-Period MA")
+plot(movingAverageLong, color=color.red, title="50-Period MA")
 
-// Calculate the 9-period moving average of the closing prices
-maPeriod = 9
-movingAverage = ta.sma(close, maPeriod)
-plot(movingAverage, color=color.blue, title="9-Period MA")
-
-// Detect two consecutive rising bars closing above the MA
-risingBarsAboveMA = dateIsWithinRange and close > movingAverage and close[1] > movingAverage and close > close[1] and close[1] > close[2]
+// Detect two consecutive rising bars closing above the short-term MA with the trend confirmation
+trendConfirmation = movingAverageShort > movingAverageLong
+risingBarsAboveMA = close > movingAverageShort and close[1] > movingAverageShort and close > close[1] and close[1] > close[2] and time >= startDate and trendConfirmation
 
 // Execute Buy Order: Once the condition for two rising bars closing above the moving average is met
 if (risingBarsAboveMA)
@@ -32,8 +27,8 @@ if (risingBarsAboveMA)
 
 // Calculate Stop Loss and Profit Target based on entry price
 var float entryPrice = na // Variable to store the entry price
-profitTarget = 1.05 // 2% profit target
-stopLoss = 0.98 // 1% stop loss
+profitTarget = 1.05 // 5% profit target
+stopLoss = 0.98 // 2% stop loss
 
 // Update entry price on position entry
 if (strategy.position_size > 0 and na(entryPrice))
@@ -49,6 +44,3 @@ if (not na(entryPrice) and close >= entryPrice * profitTarget)
 if (not na(entryPrice) and close <= entryPrice * stopLoss)
     strategy.close("Buy", comment="Stop Loss Hit")
     entryPrice := na // Reset entry price
-
-// This strategy enters a long position when two consecutive bars close above the 9-period moving average,
-// and exits the position either when a 2% profit is achieved or a 1% loss is incurred, within the specified date range.
