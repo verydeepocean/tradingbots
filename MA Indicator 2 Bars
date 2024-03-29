@@ -2,7 +2,7 @@
 indicator("Moving Average 2 Bars Indicator", overlay=true)
 
 // Inputs for start and end dates
-startYear = input.int(2024, "Start Year")
+startYear = input.int(2023, "Start Year")
 startMonth = input.int(1, "Start Month", minval=1, maxval=12)
 startDay = input.int(1, "Start Day", minval=1, maxval=31)
 endYear = input.int(2024, "End Year")
