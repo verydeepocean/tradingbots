@@ -2,8 +2,8 @@
 strategy("MA Crossover with Enhanced Trend Filter", overlay=true, default_qty_type=strategy.cash, default_qty_value=100, currency=currency.USD, commission_type=strategy.commission.percent, commission_value=0.1)
 
 // Start date inputs
-startYear = input.int(2020, "Start Year")
-startMonth = input.int(1, "Start Month", minval=1, maxval=12)
+startYear = input.int(2023, "Start Year")
+startMonth = input.int(3, "Start Month", minval=1, maxval=12)
 startDay = input.int(1, "Start Day", minval=1, maxval=31)
 
 // Convert start date to timestamp
