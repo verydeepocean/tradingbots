@@ -27,7 +27,7 @@ if (risingBarsAboveMA)
 
 // Calculate Stop Loss and Profit Target based on entry price
 var float entryPrice = na // Variable to store the entry price
-profitTarget = 1.05 // 5% profit target
+profitTarget = 1.04 // 4% profit target
 stopLoss = 0.98 // 2% stop loss
 
 // Update entry price on position entry
