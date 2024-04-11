@@ -13,7 +13,7 @@ startDate = timestamp(startYear, startMonth, startDay, 00, 00)
 
 // Short-term and long-term moving averages
 maPeriodShort = 9
-maPeriodLong = 50
+maPeriodLong = 25
 movingAverageShort = ta.sma(close, maPeriodShort)
 movingAverageLong = ta.sma(close, maPeriodLong)
 plot(movingAverageShort, color=color.blue, title="9-Period MA")
